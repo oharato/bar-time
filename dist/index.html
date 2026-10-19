@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ja" data-theme="lemon">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f4f6f1">
+  <meta name="description" content="残り時間が、ひと目でわかる。10個のバーで時間の流れを感じる、あなたのためのタイマー。">
+  <meta name="bar-time-shell" content="v3">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="BAR TIME">
+  <title>BAR TIME — 見える時間</title>
+  <link rel="manifest" href="./manifest.webmanifest?v=3" crossorigin="use-credentials">
+  <link rel="icon" href="./icons/icon.svg?v=3" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png?v=3">
+  <link rel="stylesheet" href="./style.css?v=3">
+  <script type="module" src="./app.mjs?v=3"></script>
+</head>
+<body>
+  <div id="focus-toolbar" class="focus-toolbar" aria-label="集中表示の操作" hidden><button id="focus-exit" class="focus-toolbar-button"><span aria-hidden="true">←</span> 戻る</button><span class="focus-toolbar-title">集中表示</span><button id="fullscreen-toggle" class="focus-toolbar-button" aria-pressed="false">全画面</button></div>
+  <div class="page">
+    <header class="site-header"><a class="wordmark" href="./" aria-label="BAR TIME ホーム">BAR TIME<span>VISUAL TIMER</span></a><button id="install-open" class="install-link"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3v12m-4-4 4 4 4-4M5 16v4h14v-4"/></svg><span>アプリを追加</span></button></header>
+    <main>
+      <div class="intro"><h1>残り時間が、見える。</h1><p>横に並んだ10個の目盛りで、時間をひと目に。</p><button id="focus-open" class="focus-open" aria-pressed="false" aria-controls="timer-panel"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg>集中表示</button></div>
+      <section class="timer-area" aria-label="ビジュアルバータイマー">
+        <div class="mode-tabs" role="tablist" aria-label="タイマーモード"><button id="tab-down" role="tab" aria-selected="true" aria-controls="timer-panel" data-mode="down" tabindex="0">カウントダウン</button><button id="tab-up" role="tab" aria-selected="false" aria-controls="timer-panel" data-mode="up" tabindex="-1">カウントアップ</button><button id="tab-repeat" role="tab" aria-selected="false" aria-controls="timer-panel" data-mode="repeat" tabindex="-1">リピート</button></div>
+        <div id="timer-panel" role="tabpanel" aria-labelledby="tab-down">
+          <div class="device-stage">
+            <div class="device" id="device">
+              <div class="device-top">
+                <div class="top-key-guide"><span>BAR TIME</span><span id="edit-target">時間設定</span><span>1分 ＋ 10秒：リセット</span></div>
+                <div class="device-controls">
+                  <button id="power" class="device-key power-key" aria-label="画面をオフにする" aria-pressed="true"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 2v10m-5-7a9 9 0 1 0 10 0"/></svg></button>
+                  <button id="device-mode" class="device-key">モード</button>
+                  <button class="device-key" data-increment="600">10分</button>
+                  <button class="device-key" data-increment="60" id="minute-key">1分</button>
+                  <button class="device-key" data-increment="10" id="second-key">10秒</button>
+                  <button id="main-action" class="device-key action-key"><span id="action-label">スタート</span><small>決定</small></button>
+                </div>
+              </div>
+              <div class="device-face">
+                <div class="bar-lcd"><div id="bars" class="bars" role="progressbar" aria-label="残り時間の目盛り" aria-valuemin="0" aria-valuemax="10" aria-valuenow="10"></div></div>
+                <div class="number-lcd">
+                  <div class="lcd-annunciators"><span id="screen-label">残り時間</span><span id="sound-display">消音</span></div>
+                  <div id="digits" class="digits" role="timer" aria-label="残り25分0秒"><span class="visually-hidden"><span id="digit-min">25</span>:<span id="digit-sec">00</span></span><div id="digital-display" aria-hidden="true"></div></div>
+                  <div class="lcd-footer"><span id="phase-text">READY</span><span id="cycle-label">COUNTDOWN</span></div>
+                </div>
+                <div id="led" class="led" aria-hidden="true"></div>
+              </div>
+              <div class="device-base"></div>
+            </div>
+          </div>
+          <div class="device-caption"><span id="screen-footnote">1目盛り = 2分30秒</span><div><button id="reset" class="utility-button" aria-label="リセット"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 10a8 8 0 1 1 1.5 7M4 4v6h6"/></svg>リセット</button><button id="sound-quick" class="utility-button" aria-label="終了音をオンにする" aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M11 4 5 9H2v6h3l6 5V4Z"/><path id="sound-icon-lines" d="m16 9 6 6m0-6-6 6"/></svg><span id="sound-quick-label">消音</span></button></div></div>
+          <div id="alarm-status" class="alarm-status" role="status" hidden><span id="alarm-message">計測が完了しました</span><button id="alarm-stop">お知らせを止める</button></div>
+          <div id="completion" class="completion" role="status" hidden><strong id="completion-title">時間になりました。</strong><p id="completion-message">計測が完了しました。もう一度スタートできます。</p></div>
+          <div id="notice" class="notice" role="status" hidden></div>
+        </div>
+        <div class="palette-row"><span id="color-label">レモンイエロー</span><div class="palette" aria-label="本体カラー"><button data-color="lemon" aria-label="レモンイエロー" aria-pressed="true" style="--swatch:#edec8b"></button><button data-color="mint" aria-label="ミントグリーン" aria-pressed="false" style="--swatch:#a3d9ca"></button><button data-color="marine" aria-label="マリンブルー" aria-pressed="false" style="--swatch:#4d68b0"></button><button data-color="ice" aria-label="アイスホワイト" aria-pressed="false" style="--swatch:#f0f3ee"></button></div></div>
+      </section>
+      <section class="settings" aria-label="タイマー設定">
+        <div class="time-settings">
+          <div class="section-heading"><h2>計測の設定</h2><span id="mode-description">通常計測</span></div>
+          <div id="down-settings"><div class="time-fields"><label><span>分</span><input id="duration-min" type="number" min="0" max="99" inputmode="numeric" value="25" aria-label="タイマーの分"></label><span class="field-colon">:</span><label><span>秒</span><input id="duration-sec" type="number" min="0" max="59" inputmode="numeric" value="0" aria-label="タイマーの秒"></label></div><div class="presets" aria-label="時間のプリセット"><button data-preset="300">5分</button><button data-preset="600">10分</button><button data-preset="1500" aria-pressed="true">25分</button><button data-preset="2700">45分</button></div><p class="field-help">最大99分50秒。上のボタンで10分・1分・10秒ずつ追加。</p></div>
+          <div id="up-settings" hidden><p class="mode-description">00分00秒から時間を計ります。<br>約10分ごとに、左から目盛りが増えます。</p><p class="field-help">最大99分59秒で停止します。</p></div>
+          <div id="repeat-settings" hidden><div class="repeat-row"><label for="work-min">作業時間</label><div class="small-time"><input id="work-min" type="number" min="0" max="99" value="25" aria-label="作業の分" inputmode="numeric"><span>分</span><input id="work-sec" type="number" min="0" max="59" value="0" aria-label="作業の秒" inputmode="numeric"><span>秒</span></div></div><div class="repeat-row"><label for="rest-min">休憩時間</label><div class="small-time"><input id="rest-min" type="number" min="0" max="99" value="5" aria-label="休憩の分" inputmode="numeric"><span>分</span><input id="rest-sec" type="number" min="0" max="59" value="0" aria-label="休憩の秒" inputmode="numeric"><span>秒</span></div></div><div class="repeat-row"><label for="cycles">作業の回数</label><div class="small-time cycles-input"><button id="cycle-minus" aria-label="回数を減らす">−</button><input id="cycles" type="number" min="1" max="99" value="4" aria-label="作業の回数" inputmode="numeric"><button id="cycle-plus" aria-label="回数を増やす">＋</button></div></div><p class="field-help" id="repeat-total">合計1時間55分 · 最後の休憩なし</p><p class="field-help">各最大99分50秒。作業は最大99回、休憩は最大98回。</p></div>
+          <p id="locked-help" class="locked-help" hidden>設定を変えるにはリセットしてください。</p>
+        </div>
+        <div class="other-settings"><div class="section-heading"><h2>音と画面</h2></div><div class="option-row"><label for="sound-toggle"><span>操作音・アラーム</span><small>切り替え約3秒 / 完了約10秒</small></label><button id="sound-toggle" role="switch" aria-checked="false" aria-label="操作音・アラーム" class="switch"><span></span></button></div><div class="option-row"><label for="wake-toggle"><span>画面をつけたまま</span><small id="wake-description">タイマー動作中のスリープを防ぐ</small></label><button id="wake-toggle" role="switch" aria-checked="false" aria-label="画面をつけたまま" class="switch"><span></span></button></div><p class="field-help">消音でも、本体右端のLEDが点滅します。<br>スタート / ストップでお知らせを止められます。</p></div>
+      </section>
+      <div class="bottom-note"><p>画面を閉じたり端末をロックしたりすると、終了音は鳴らない場合があります。</p><button id="help-open">使い方・インストール・ご注意</button></div>
+    </main>
+    <footer class="site-footer"><span>BAR TIME · VBT5を参考にしたWebアプリ</span><span id="offline-status">端末内に保存 · アカウント同期なし</span></footer>
+  </div>
+  <dialog id="guide" aria-labelledby="guide-title"><div class="dialog-header"><span class="eyebrow">BAR TIME GUIDE</span><button id="guide-close" class="round-button" aria-label="閉じる">×</button></div><h2 id="guide-title">いつもの場所に、タイマーを。</h2><p>ホーム画面に追加すると、独立したアプリとして使えます。</p><button id="install-native" class="start-button" hidden>この端末にインストール</button><div id="installed-message" class="installed-message" hidden>この端末ではアプリとして起動しています。</div><div class="guide-block"><h3>iPhone / iPad</h3><p>Safariでこのページを開き、共有メニュー →「ホーム画面に追加」を選んでください。「Webアプリとして開く」が表示されたらオンにします。</p></div><div class="guide-block"><h3>Android / パソコン</h3><p>ChromeやEdgeで開き、ブラウザメニューの「アプリをインストール」または「ホーム画面に追加」を選びます。上にインストールボタンが出る場合は、そちらも使えます。</p></div><div class="guide-block"><h3>集中表示と全画面</h3><p>「集中表示」で設定やメニューを隠せます。計測はそのまま続き、左上の「戻る」で通常表示に戻れます。対応ブラウザでは右上の「全画面」からブラウザの枠も隠せます。全画面にできない端末でも集中表示は使えます。</p></div><div class="guide-block"><h3>時間とお知らせについて</h3><ul><li>残り時間は10個の目盛りで表示。カウントダウンは右から減り、カウントアップは約10分ごとに左から増えます。リピートは作業と休憩を交互に繰り返し、最後の作業で終了します。</li><li>通常の完了は約10秒、リピートの切り替えは約3秒、最後の完了は約10秒、アラームと画面上のLEDでお知らせします。消音でもLEDは動作します。「動きを減らす」が有効な端末では点滅の代わりに点灯します。</li><li>画面を閉じたり、端末をロックしたりすると終了音は鳴らないことがあります。戻ると経過した時間を反映し、過去のお知らせをまとめて鳴らすことはありません。</li><li>実機と同じ位置に10分・1分・10秒ボタンを配置しています。1分と10秒を同時に押すとリセット。タッチ操作が難しい場合は、画面下のリセットを使えます。分・秒の直接入力はWeb版の補助機能です。</li><li>終了音は端末の音量・消音設定の影響を受けます。医療や安全管理など、確実なアラームが必要な用途には使わないでください。</li><li>「画面をつけたまま」は対応端末でのみ利用でき、OSによって解除される場合があります。</li></ul></div><div class="guide-block"><h3>オフラインとプライバシー</h3><p>初回はオンラインで開き、読み込み完了後はオフラインでも使えます。設定とタイマーの状態はこの端末のブラウザに保存され、ほかの端末には同期されません。このアプリは一般公開されています。オフライン保存したアプリと設定はこの端末を使える人も開けます。</p><button id="clear-local" class="text-button">この端末の保存データを消す</button><p class="field-help">保存したタイマー・設定・オフラインキャッシュを削除します。</p></div><p class="fine-print">KING JIM「ビジュアルバータイマー プチ VBT5」の外観・仕様を参考にしたWebアプリです。メーカーの公式アプリではありません。電池寿命や物理的なLEDなど、実機のハードウェア仕様を再現するものではありません。</p></dialog>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <noscript><p>このタイマーを使うには、JavaScriptを有効にしてください。</p></noscript>
+</body>
+</html>

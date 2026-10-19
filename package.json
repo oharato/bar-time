@@ -1,0 +1,11 @@
+{
+  "name": "bar-time",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "check": "node --check dist/app.mjs && node --check dist/sw.js",
+    "pages": "node scripts/pages.mjs"
+  }
+}
