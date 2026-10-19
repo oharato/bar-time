@@ -19,6 +19,7 @@ The Web interface intentionally adds direct time inputs and a separate accessibl
 - Six top controls arranged like the reference, plus accessible direct inputs/reset.
 - Finite 3-second transition / 10-second completion alarm and LED episodes; mute retains visual signals.
 - Timestamp-based elapsed time and pause/resume persisted on the same browser.
+- Independent vibration switch (default off), with a short test action. Supported browsers can request a bounded pattern at transitions/completion; actual vibration depends on hardware, browser policy and device settings. iPhone/iPad browsers typically do not expose this API. Switching off, reset, dismissal and leaving the page cancel vibration. Background events are not replayed.
 - Optional Screen Wake Lock and platform-aware installation guide.
 - Focus display hides surrounding controls without resetting or pausing the timer; browser fullscreen gracefully handles unsupported or denied requests.
 - PWA manifest, PNG/maskable/apple icons and offline service-worker shell.
@@ -26,9 +27,11 @@ The Web interface intentionally adds direct time inputs and a separate accessibl
 ## Verification
 Run `npm test` and `npm run check`.
 
-68 automated checks cover timer boundaries and background recovery, manifest assets, service-worker auth/cache handling, focus/fullscreen actions and asynchronous cancellation, and UI actions in a simulated DOM. Digit geometry is checked across all 6,000 possible display values. Simulated-DOM tests are not browser tests.
+76 automated checks cover timer boundaries and background recovery, manifest assets, service-worker auth/cache handling, focus/fullscreen actions and asynchronous cancellation, and UI actions in a simulated DOM. Digit geometry is checked across all 6,000 possible display values. Simulated-DOM tests are not browser tests.
 
 Actual Playwright/Chromium testing was attempted on 2026-10-19, but this execution environment denied Chromium's local socket; the supported escalation route also failed before launch. Therefore visual rendering, real-device installation and actual offline navigation are not verified by that attempt.
+
+Vibration behavior is covered by simulated-API tests, including unsupported APIs, rejection, exceptions, cancellation, user activation and background recovery. Physical smartphone vibration has not been tested.
 
 ## Limitations
 Mobile browsers may suspend pages and audio in the background or while locked. This app calculates the correct elapsed time when reopened; it cannot guarantee an alarm with the page closed. No notification permission is requested. Saved state is device/browser-local and not synced. Device clock changes can affect elapsed wall time.

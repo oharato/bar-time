@@ -1,20 +1,21 @@
-import {createState, normalizeConfig, start, pause, reset, snapshot, hydrate, MAX_DOWN, barCount} from './engine.mjs?v=3';
-import {createAlert, alertView, cancelAlert} from './alarm.mjs?v=3';
-import {setupFocusMode} from './focus.mjs?v=3';
-import {renderDigitalDisplay} from './digits.mjs?v=3';
+import {createState, normalizeConfig, start, pause, reset, snapshot, hydrate, MAX_DOWN, barCount} from './engine.mjs?v=4';
+import {createAlert, alertView, cancelAlert} from './alarm.mjs?v=4';
+import {setupFocusMode} from './focus.mjs?v=4';
+import {renderDigitalDisplay} from './digits.mjs?v=4';
 
 const $ = id => document.getElementById(id);
 const DEPLOY_PATH = new URL('./', location.href).pathname;
 const CACHE_PREFIX = `bar-time:${DEPLOY_PATH}:`;
 const KEY = `${CACHE_PREFIX}state-v1`, PREF_KEY = `${CACHE_PREFIX}prefs-v1`;
-let storageWarning = false, clearedLocal = false;
+let storageWarning = false, clearedLocal = false, vibrationInteraction = false;
+const vibrationSupported = typeof navigator.vibrate === 'function';
 function readJSON(key) { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } }
 function writeJSON(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch { if (!storageWarning) { storageWarning = true; notify('このブラウザでは保存できません。ページを閉じると設定が失われます。'); } } }
 let state = hydrate(readJSON(KEY), Date.now());
 const THEME_NAMES={lemon:'レモンイエロー',mint:'ミントグリーン',marine:'マリンブルー',ice:'アイスホワイト'};
 const migrateTheme=value=>Object.hasOwn(THEME_NAMES,value)?value:({clay:'lemon',sage:'mint',ink:'marine',plum:'ice'}[value]||'lemon');
 const rawPrefs = readJSON(PREF_KEY) || {};
-let prefs = {sound:rawPrefs.sound === true, theme:migrateTheme(rawPrefs.theme), wake:rawPrefs.wake === true};
+let prefs = {sound:rawPrefs.sound === true, vibration:rawPrefs.vibration === true, theme:migrateTheme(rawPrefs.theme), wake:rawPrefs.wake === true};
 let previous = snapshot(state, Date.now());
 let activeAlert=null, lastAlarmPulse=-1, completionShown=false, powered=true, editingTime='work', suppressIncrementUntil=0;
 const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -52,6 +53,10 @@ function applyPreferences() {
   $('sound-display').textContent=prefs.sound ? '♪' : '消音';
   $('sound-quick-label').textContent=prefs.sound?'音あり':'消音';
   $('sound-icon-lines').setAttribute('d', prefs.sound ? 'M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14' : 'm16 9 6 6m0-6-6 6');
+  $('vibration-toggle').setAttribute('aria-checked',String(prefs.vibration));
+  $('vibration-toggle').disabled=!vibrationSupported;
+  $('vibration-test').disabled=!vibrationSupported||!prefs.vibration;
+  $('vibration-description').textContent=vibrationSupported?'音とは独立。端末・ブラウザの設定により振動しない場合があります。':'このブラウザは振動に対応していません（iPhone / iPadなど）。';
   $('wake-toggle').setAttribute('aria-checked',String(prefs.wake));
   if (!('wakeLock' in navigator)) { $('wake-toggle').disabled=true; $('wake-description').textContent='このブラウザでは非対応です'; }
 }
@@ -97,9 +102,17 @@ function beep(preview=false) {
   if(!prefs.sound||document.visibilityState!=='visible'||!audioContext||audioContext.state!=='running')return;
   try {const oscillator=audioContext.createOscillator(),gain=audioContext.createGain();oscillator.connect(gain);gain.connect(audioContext.destination);oscillator.type='sine';oscillator.frequency.value=preview?1150:1600;const t=audioContext.currentTime;gain.gain.setValueAtTime(0,t);gain.gain.linearRampToValueAtTime(.11,t+.006);gain.gain.setValueAtTime(.11,t+.075);gain.gain.exponentialRampToValueAtTime(.001,t+.11);oscillator.start(t);oscillator.stop(t+.12);}catch{}
 }
-function beginAlert(kind,eventTime,phase){activeAlert=createAlert(kind,eventTime);lastAlarmPulse=-1;if(kind==='complete')completionShown=true;$('alarm-message').textContent=kind==='complete'?'計測完了 · 約10秒お知らせ':phase==='rest'?'休憩を開始 · 約3秒お知らせ':'作業を開始 · 約3秒お知らせ';}
+function stopVibration(){if(vibrationSupported)try{navigator.vibrate(0);}catch{}}
+function vibrate(pattern,preview=false){
+  if(!prefs.vibration||!vibrationSupported||document.visibilityState!=='visible')return false;
+  if(!vibrationInteraction||navigator.userActivation?.hasBeenActive===false){if(preview)notify('振動にはブラウザでの操作が必要です。スタートや設定ボタンを操作してからお試しください。');return false;}
+  try{if(navigator.vibrate(pattern)===true)return true;}catch{}
+  if(preview)notify('振動を開始できませんでした。端末やブラウザの設定をご確認ください。');
+  return false;
+}
+function beginAlert(kind,eventTime,phase){if(Date.now()-eventTime<2500)vibrate(kind==='complete'?[300,150,300,150,300]:[200,100,200]);activeAlert=createAlert(kind,eventTime);lastAlarmPulse=-1;if(kind==='complete')completionShown=true;$('alarm-message').textContent=kind==='complete'?'計測完了 · 約10秒お知らせ':phase==='rest'?'休憩を開始 · 約3秒お知らせ':'作業を開始 · 約3秒お知らせ';}
 function restoreAfterCompletion(){state=reset(state,Date.now());previous=snapshot(state,Date.now());lastSecond=-1;save();syncConfigUI();manageWake();}
-function stopAlert(restore=true){const complete=activeAlert?.kind==='complete';activeAlert=cancelAlert();lastAlarmPulse=-1;$('led').classList.toggle('on',false);$('device').classList.toggle('alarm-blink',false);$('alarm-status').hidden=true;if(complete&&restore)restoreAfterCompletion();}
+function stopAlert(restore=true){stopVibration();const complete=activeAlert?.kind==='complete';activeAlert=cancelAlert();lastAlarmPulse=-1;$('led').classList.toggle('on',false);$('device').classList.toggle('alarm-blink',false);$('alarm-status').hidden=true;if(complete&&restore)restoreAfterCompletion();}
 function renderAlert(now,allowSound=true){
   if(!activeAlert)return;
   const view=alertView(activeAlert,now);
@@ -134,6 +147,7 @@ function readFields() {
   changeConfig(normalized);
 }
 function mainAction() {
+  vibrationInteraction=true;
   if(!powered)return;
   if(activeAlert){stopAlert();render();return;}
   completionShown=false;
@@ -152,6 +166,8 @@ const pressedTimeKeys=new Set();
 for(const id of ['minute-key','second-key']){const key=$(id);key.addEventListener('pointerdown',()=>{pressedTimeKeys.add(id);if(pressedTimeKeys.size===2){suppressIncrementUntil=Date.now()+700;resetAction();}});for(const event of ['pointerup','pointercancel','pointerleave'])key.addEventListener(event,()=>pressedTimeKeys.delete(id));}
 for(const id of ['work-min','work-sec','rest-min','rest-sec'])$(id).addEventListener('focus',()=>{editingTime=id.startsWith('rest')?'rest':'work';$('edit-target').textContent=editingTime==='rest'?'休憩時間を設定':'作業時間を設定';});$('reset').addEventListener('click',resetAction);
 $('sound-quick').addEventListener('click',toggleSound);$('sound-toggle').addEventListener('click',toggleSound);
+$('vibration-toggle').addEventListener('click',()=>{if(!vibrationSupported)return;vibrationInteraction=true;prefs.vibration=!prefs.vibration;if(!prefs.vibration)stopVibration();savePrefs();applyPreferences();});
+$('vibration-test').addEventListener('click',()=>{vibrationInteraction=true;if(vibrate(200,true))notify('振動をリクエストしました。実際に振動したか端末でご確認ください。');});
 $('wake-toggle').addEventListener('click',()=>{prefs.wake=!prefs.wake;savePrefs();applyPreferences();manageWake();});
 for(const id of inputs)$(id).addEventListener('change',readFields);
 for(const e of document.querySelectorAll('[data-preset]'))e.addEventListener('click',()=>changeConfig({duration:Number(e.dataset.preset)}));
@@ -179,7 +195,7 @@ function tick() {
 setInterval(tick,200);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){tick();manageWake();}else {stopAlert();state=hydrate(state,Date.now());save();manageWake();}});
 window.addEventListener('pagehide',()=>{stopAlert();state=hydrate(state,Date.now());save();});
-window.addEventListener('storage',e=>{if(e.key===KEY){stopAlert(false);completionShown=false;state=hydrate(readJSON(KEY),Date.now());previous=snapshot(state,Date.now());lastSecond=-1;syncConfigUI();render(previous);manageWake();}if(e.key===PREF_KEY){const p=readJSON(PREF_KEY);if(p){prefs={sound:p.sound===true,wake:p.wake===true,theme:migrateTheme(p.theme)};applyPreferences();manageWake();}}});
+window.addEventListener('storage',e=>{if(e.key===KEY){stopAlert(false);completionShown=false;state=hydrate(readJSON(KEY),Date.now());previous=snapshot(state,Date.now());lastSecond=-1;syncConfigUI();render(previous);manageWake();}if(e.key===PREF_KEY){const p=readJSON(PREF_KEY);if(p){prefs={sound:p.sound===true,vibration:p.vibration===true,wake:p.wake===true,theme:migrateTheme(p.theme)};if(!prefs.vibration)stopVibration();applyPreferences();manageWake();}}});
 
 function openGuide(){ $('guide').showModal(); }
 $('install-open').addEventListener('click',openGuide);$('help-open').addEventListener('click',openGuide);$('guide-close').addEventListener('click',()=>$('guide').close());
@@ -191,13 +207,13 @@ window.addEventListener('appinstalled',()=>{installEvent=null;$('install-native'
 markInstalled();
 $('clear-local').addEventListener('click',async()=>{
   if(!window.confirm('この端末のタイマー・設定・オフラインキャッシュを削除します。実行しますか？'))return;
-  try{stopAlert(false);completionShown=false;powered=true;clearedLocal=true;localStorage.removeItem(KEY);localStorage.removeItem(PREF_KEY);state=createState();prefs={sound:false,theme:'lemon',wake:false};previous=snapshot(state,Date.now());lastSecond=-1;
+  try{stopAlert(false);completionShown=false;powered=true;clearedLocal=true;localStorage.removeItem(KEY);localStorage.removeItem(PREF_KEY);state=createState();prefs={sound:false,vibration:false,theme:'lemon',wake:false};previous=snapshot(state,Date.now());lastSecond=-1;
     if('caches'in window)for(const key of await caches.keys())if(key.startsWith(CACHE_PREFIX))await caches.delete(key);
     if('serviceWorker'in navigator)for(const reg of await navigator.serviceWorker.getRegistrations())if(reg.scope===new URL('./',location.href).href)await reg.unregister();
     syncConfigUI();applyPreferences();render();manageWake();$('offline-status').textContent='保存データを削除しました';notify('削除しました。次に開くとオフライン用データを再保存します。');
   }catch{notify('一部を削除できませんでした。ブラウザのサイト設定から削除できます。');}
 });
-async function offlineStatus(){if(!navigator.onLine){$('offline-status').textContent='オフラインで利用中';return;}try{const ready='caches'in window&&await caches.has(`${CACHE_PREFIX}shell-v3`);$('offline-status').textContent=ready?'オフライン対応 · この端末に保存':'端末内に保存 · アカウント同期なし';}catch{}}
+async function offlineStatus(){if(!navigator.onLine){$('offline-status').textContent='オフラインで利用中';return;}try{const ready='caches'in window&&await caches.has(`${CACHE_PREFIX}shell-v4`);$('offline-status').textContent=ready?'オフライン対応 · この端末に保存':'端末内に保存 · アカウント同期なし';}catch{}}
 window.addEventListener('online',offlineStatus);window.addEventListener('offline',offlineStatus);
 if('serviceWorker'in navigator && window.isSecureContext){navigator.serviceWorker.register('./sw.js',{scope:'./'}).then(()=>navigator.serviceWorker.ready).then(offlineStatus).catch(()=>{$('offline-status').textContent='オフライン保存は利用できません';});}
 if(state.status==='done' && readJSON(KEY)?.status==='running'){$('notice').textContent='前回のタイマーは、画面を閉じている間に終了しました。';$('notice').hidden=false;}

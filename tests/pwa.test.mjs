@@ -15,7 +15,7 @@ function harness(fetchFn, scope=base) {
   vm.runInNewContext(fs.readFileSync(path.join(dist,'sw.js'),'utf8'),context);
   return {events,caches,stores,data};
 }
-async function seed(h,url=base,body=html){const c=await h.caches.open('bar-time:/:shell-v3');await c.put(new Request(url),response(body,{url}));}
+async function seed(h,url=base,body=html){const c=await h.caches.open('bar-time:/:shell-v4');await c.put(new Request(url),response(body,{url}));}
 async function request(h,url,mode='navigate'){let pending;const req=new Request(url);Object.defineProperty(req,'mode',{value:mode});h.events.fetch({request:req,respondWith:p=>pending=p});return pending ? {intercepted:true,response:await pending} : {intercepted:false};}
 test('manifest is Japanese, scoped, standalone, and all icon dimensions match',()=>{
   assert.equal(manifest.lang,'ja');assert.equal(manifest.display,'standalone');assert.equal(manifest.scope,'./');assert.equal(manifest.start_url,'./');
@@ -29,7 +29,7 @@ test('all local HTML references exist, IDs are unique, and no external assets re
 });
 test('service-worker installs only the validated same-origin shell',async()=>{
   const h=harness(async req=>{const p=new URL(req.url).pathname;const file=p==='/'?'index.html':p.slice(1);const type=p.endsWith('.js')||p.endsWith('.mjs')?'text/javascript':p.endsWith('.css')?'text/css':p.endsWith('.webmanifest')?'application/manifest+json':p.endsWith('.png')?'image/png':p.endsWith('.svg')?'image/svg+xml':'text/html';return response(fs.readFileSync(path.join(dist,file),'utf8'),{url:req.url,contentType:type});});
-  let done;h.events.install({waitUntil:p=>done=p});await done;const cache=h.stores.get('bar-time:/:shell-v3');assert.equal(cache.size,26);assert(cache.has(base));assert(cache.has(base+'app.mjs'));
+  let done;h.events.install({waitUntil:p=>done=p});await done;const cache=h.stores.get('bar-time:/:shell-v4');assert.equal(cache.size,26);assert(cache.has(base));assert(cache.has(base+'app.mjs'));
 });
 test('service-worker rejects login HTML during install without caching it',async()=>{
   const h=harness(async req=>response('<h1>Sign in</h1>',{url:req.url}));let done;h.events.install({waitUntil:p=>done=p});await assert.rejects(done,/App shell unavailable/);assert.equal(h.stores.size,0);
@@ -53,20 +53,20 @@ test('cached allowlisted static assets work offline',async()=>{
   const h=harness(async()=>{throw Error('offline');});await seed(h,base+'style.css','body{}');const result=await request(h,base+'style.css','cors');assert.equal(await result.response.text(),'body{}');
 });
 
-test('v3 assets bypass older installed caches and all versioned imports are precached',()=>{
- assert.match(html,/app\.mjs\?v=3/);assert.match(html,/style\.css\?v=3/);const app=fs.readFileSync(path.join(dist,'app.mjs'),'utf8');assert.match(app,/engine\.mjs\?v=3/);assert.match(app,/alarm\.mjs\?v=3/);const sw=fs.readFileSync(path.join(dist,'sw.js'),'utf8');for(const file of ['app.mjs','style.css','engine.mjs','alarm.mjs','focus.mjs','digits.mjs','manifest.webmanifest'])assert(sw.includes(file+'?v=3'));
+test('v4 assets bypass older installed caches and all versioned imports are precached',()=>{
+ assert.match(html,/app\.mjs\?v=4/);assert.match(html,/style\.css\?v=4/);const app=fs.readFileSync(path.join(dist,'app.mjs'),'utf8');assert.match(app,/engine\.mjs\?v=4/);assert.match(app,/alarm\.mjs\?v=4/);const sw=fs.readFileSync(path.join(dist,'sw.js'),'utf8');for(const file of ['app.mjs','style.css','engine.mjs','alarm.mjs','focus.mjs','digits.mjs','manifest.webmanifest'])assert(sw.includes(file+'?v=4'));
 });
 test('exact versioned static asset is usable offline; arbitrary queries stay outside the cache',async()=>{
- const h=harness(async()=>{throw Error('offline');});await seed(h,base+'style.css?v=3','body{color:black}');const result=await request(h,base+'style.css?v=3','cors');assert.equal(await result.response.text(),'body{color:black}');assert.equal((await request(h,base+'style.css?token=secret','cors')).intercepted,false);
+ const h=harness(async()=>{throw Error('offline');});await seed(h,base+'style.css?v=4','body{color:black}');const result=await request(h,base+'style.css?v=4','cors');assert.equal(await result.response.text(),'body{color:black}');assert.equal((await request(h,base+'style.css?token=secret','cors')).intercepted,false);
 });
 
 test('Pages path activation preserves sibling deployment caches',async()=>{
  const h=harness(async()=>{throw Error('offline');},base+'bar-time/');
- for(const name of ['bar-time:/bar-time/:shell-v2','bar-time:/other/:shell-v2','bar-time:/:shell-v3'])await h.caches.open(name);
+ for(const name of ['bar-time:/bar-time/:shell-v2','bar-time:/other/:shell-v2','bar-time:/:shell-v4'])await h.caches.open(name);
  let done;h.events.activate({waitUntil:p=>done=p});await done;
  assert(!h.stores.has('bar-time:/bar-time/:shell-v2'));
- assert(h.stores.has('bar-time:/other/:shell-v2'));assert(h.stores.has('bar-time:/:shell-v3'));
- const c=await h.caches.open('bar-time:/bar-time/:shell-v3');await c.put(base+'bar-time/',response(html,{url:base+'bar-time/'}));
+ assert(h.stores.has('bar-time:/other/:shell-v2'));assert(h.stores.has('bar-time:/:shell-v4'));
+ const c=await h.caches.open('bar-time:/bar-time/:shell-v4');await c.put(base+'bar-time/',response(html,{url:base+'bar-time/'}));
  assert.equal(await (await request(h,base+'bar-time/')).response.text(),html);
  assert.equal((await request(h,base)).intercepted,false);
 });

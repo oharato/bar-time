@@ -5,16 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f4f6f1">
   <meta name="description" content="残り時間が、ひと目でわかる。10個のバーで時間の流れを感じる、あなたのためのタイマー。">
-  <meta name="bar-time-shell" content="v3">
+  <meta name="bar-time-shell" content="v4">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="BAR TIME">
   <title>BAR TIME — 見える時間</title>
-  <link rel="manifest" href="./manifest.webmanifest?v=3" crossorigin="use-credentials">
-  <link rel="icon" href="./icons/icon.svg?v=3" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png?v=3">
-  <link rel="stylesheet" href="./style.css?v=3">
-  <script type="module" src="./app.mjs?v=3"></script>
+  <link rel="manifest" href="./manifest.webmanifest?v=4" crossorigin="use-credentials">
+  <link rel="icon" href="./icons/icon.svg?v=4" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png?v=4">
+  <link rel="stylesheet" href="./style.css?v=4">
+  <script type="module" src="./app.mjs?v=4"></script>
 </head>
 <body>
   <div id="focus-toolbar" class="focus-toolbar" aria-label="集中表示の操作" hidden><button id="focus-exit" class="focus-toolbar-button"><span aria-hidden="true">←</span> 戻る</button><span class="focus-toolbar-title">集中表示</span><button id="fullscreen-toggle" class="focus-toolbar-button" aria-pressed="false">全画面</button></div>
@@ -65,7 +65,7 @@
           <div id="repeat-settings" hidden><div class="repeat-row"><label for="work-min">作業時間</label><div class="small-time"><input id="work-min" type="number" min="0" max="99" value="25" aria-label="作業の分" inputmode="numeric"><span>分</span><input id="work-sec" type="number" min="0" max="59" value="0" aria-label="作業の秒" inputmode="numeric"><span>秒</span></div></div><div class="repeat-row"><label for="rest-min">休憩時間</label><div class="small-time"><input id="rest-min" type="number" min="0" max="99" value="5" aria-label="休憩の分" inputmode="numeric"><span>分</span><input id="rest-sec" type="number" min="0" max="59" value="0" aria-label="休憩の秒" inputmode="numeric"><span>秒</span></div></div><div class="repeat-row"><label for="cycles">作業の回数</label><div class="small-time cycles-input"><button id="cycle-minus" aria-label="回数を減らす">−</button><input id="cycles" type="number" min="1" max="99" value="4" aria-label="作業の回数" inputmode="numeric"><button id="cycle-plus" aria-label="回数を増やす">＋</button></div></div><p class="field-help" id="repeat-total">合計1時間55分 · 最後の休憩なし</p><p class="field-help">各最大99分50秒。作業は最大99回、休憩は最大98回。</p></div>
           <p id="locked-help" class="locked-help" hidden>設定を変えるにはリセットしてください。</p>
         </div>
-        <div class="other-settings"><div class="section-heading"><h2>音と画面</h2></div><div class="option-row"><label for="sound-toggle"><span>操作音・アラーム</span><small>切り替え約3秒 / 完了約10秒</small></label><button id="sound-toggle" role="switch" aria-checked="false" aria-label="操作音・アラーム" class="switch"><span></span></button></div><div class="option-row"><label for="wake-toggle"><span>画面をつけたまま</span><small id="wake-description">タイマー動作中のスリープを防ぐ</small></label><button id="wake-toggle" role="switch" aria-checked="false" aria-label="画面をつけたまま" class="switch"><span></span></button></div><p class="field-help">消音でも、本体右端のLEDが点滅します。<br>スタート / ストップでお知らせを止められます。</p></div>
+        <div class="other-settings"><div class="section-heading"><h2>音・振動と画面</h2></div><div class="option-row"><label for="sound-toggle"><span>操作音・アラーム</span><small>切り替え約3秒 / 完了約10秒</small></label><button id="sound-toggle" role="switch" aria-checked="false" aria-label="操作音・アラーム" class="switch"><span></span></button></div><div class="option-row"><label for="vibration-toggle"><span>スマホの振動</span><small id="vibration-description">音とは独立した振動のお知らせ</small></label><button id="vibration-toggle" role="switch" aria-checked="false" aria-label="スマホの振動" aria-describedby="vibration-description" class="switch"><span></span></button></div><button id="vibration-test" class="text-button" disabled>振動を試す</button><div class="option-row"><label for="wake-toggle"><span>画面をつけたまま</span><small id="wake-description">タイマー動作中のスリープを防ぐ</small></label><button id="wake-toggle" role="switch" aria-checked="false" aria-label="画面をつけたまま" class="switch"><span></span></button></div><p class="field-help">消音でも、本体右端のLEDが点滅します。<br>スタート / ストップでお知らせを止められます。</p></div>
       </section>
       <div class="bottom-note"><p>画面を閉じたり端末をロックしたりすると、終了音は鳴らない場合があります。</p><button id="help-open">使い方・インストール・ご注意</button></div>
     </main>

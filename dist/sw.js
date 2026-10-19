@@ -3,14 +3,14 @@
    kept by the app in localStorage, not copied into any server response cache. */
 const BASE=new URL('./',self.location.href);
 const CACHE_PREFIX=`bar-time:${BASE.pathname}:`;
-const CACHE=`${CACHE_PREFIX}shell-v3`;
-const FILES=['./','./index.html','./style.css','./app.mjs','./engine.mjs','./alarm.mjs','./focus.mjs','./digits.mjs','./manifest.webmanifest','./icons/icon.svg','./icons/icon-192.png','./icons/icon-512.png','./icons/maskable-512.png','./icons/apple-touch-icon.png','./style.css?v=3','./app.mjs?v=3','./engine.mjs?v=3','./alarm.mjs?v=3','./focus.mjs?v=3','./digits.mjs?v=3','./manifest.webmanifest?v=3','./icons/icon.svg?v=3','./icons/icon-192.png?v=3','./icons/icon-512.png?v=3','./icons/maskable-512.png?v=3','./icons/apple-touch-icon.png?v=3'];
+const CACHE=`${CACHE_PREFIX}shell-v4`;
+const FILES=['./','./index.html','./style.css','./app.mjs','./engine.mjs','./alarm.mjs','./focus.mjs','./digits.mjs','./manifest.webmanifest','./icons/icon.svg','./icons/icon-192.png','./icons/icon-512.png','./icons/maskable-512.png','./icons/apple-touch-icon.png','./style.css?v=4','./app.mjs?v=4','./engine.mjs?v=4','./alarm.mjs?v=4','./focus.mjs?v=4','./digits.mjs?v=4','./manifest.webmanifest?v=4','./icons/icon.svg?v=4','./icons/icon-192.png?v=4','./icons/icon-512.png?v=4','./icons/maskable-512.png?v=4','./icons/apple-touch-icon.png?v=4'];
 const ALLOWED=new Set(FILES.map(p=>new URL(p,BASE).href));
 function allowed(request){const url=new URL(request.url);return request.method==='GET'&&url.origin===BASE.origin&&ALLOWED.has(url.href);}
 async function valid(request,response){
   if(!response.ok||response.redirected||response.type==='opaque'||response.url!==request.url)return false;
   const p=new URL(request.url).pathname;
-  if(p===BASE.pathname||p===BASE.pathname+'index.html')return response.headers.get('content-type')?.includes('text/html')&&(await response.clone().text()).includes('<meta name="bar-time-shell" content="v3">');
+  if(p===BASE.pathname||p===BASE.pathname+'index.html')return response.headers.get('content-type')?.includes('text/html')&&(await response.clone().text()).includes('<meta name="bar-time-shell" content="v4">');
   const type=response.headers.get('content-type')||'';
   if(p.endsWith('.js')||p.endsWith('.mjs'))return /javascript/.test(type);
   if(p.endsWith('.css'))return type.includes('text/css');
